@@ -285,6 +285,7 @@ Scrapery.prototype.prep = function(fn) {
     this.loading = true;
     fn.apply();
     this.loading = false;
+    return this;
 }
 
 module.exports = Scrapery;
