@@ -1,0 +1,10 @@
+#This is a comment to be ignored
+
+User-agent: *
+Disallow: /hidden/  #comment
+Disallow: /page/3.html
+Allow: /hidden/13.html
+Crawl-delay: 1
+
+User-agent: doesnotexist
+Disallow: /page/

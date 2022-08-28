@@ -1,0 +1,21 @@
+{
+  "name": "scrapery",
+  "version": "0.1.0",
+  "description": "A library to support the scraping of sites",
+  "main": "index.js",
+  "scripts": {
+    "demoserver": "npx http-server ./demoscrape -p 3000",
+    "demo": "node demo",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cheerio": "^1.0.0-rc.10",
+    "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "html-server": "^0.1.1"
+  }
+}
