@@ -1,4 +1,5 @@
 const axios = require('axios');
+const https = require('https');
 const fs = require('fs');
 
 function padString(i) {
@@ -130,6 +131,13 @@ function Scrapery(config) {
         ...config
     }
 
+    if (this.config.agent) {
+        this.agent = this.config.agent
+    } else {
+        this.agent = new https.Agent({
+            rejectUnauthorized: false
+        });
+    }
     if (!fs.existsSync('./cache/')) {
         fs.mkdirSync('./cache/');
     }
@@ -190,7 +198,9 @@ Scrapery.prototype._check_if_complete = function() {
 Scrapery.prototype._request = function(url, key, callback, error) {
     let that = this;
 
-    axios.get(url).then(res => {
+    axios.get(url, {
+        httpsAgent: this.agent
+    }).then(res => {
         const html = res.data;
 
         if (that.config.cache) {

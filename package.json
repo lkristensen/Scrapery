@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^0.27.2",
     "cheerio": "^1.0.0-rc.10",
+    "https": "^1.0.0",
     "request": "^2.88.2"
   },
   "devDependencies": {
