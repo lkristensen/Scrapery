@@ -115,6 +115,7 @@ function Scrapery(config) {
     this.throttled = [];
     this.data = {};
     this.file_path;
+    this.loading = false;
     this.robots = {};
     this._print = false;
     this._pp = (key, data) => { return {key, ...data} };
@@ -190,7 +191,7 @@ Scrapery.prototype._return_html = function(key, callback, html) {
 }
 
 Scrapery.prototype._check_if_complete = function() {
-    if(this.throttled.length === 0 && this.active_cached === 0) {
+    if(this.throttled.length === 0 && this.active_cached === 0 && !this.loading) {
         this._complete();
     }
 } 
@@ -279,5 +280,11 @@ Scrapery.prototype.post_process = function(fn) {
     this._pp = fn;
     return this;
 };
+
+Scrapery.prototype.prep = function(fn) {
+    this.loading = true;
+    fn.apply();
+    this.loading = false;
+}
 
 module.exports = Scrapery;
