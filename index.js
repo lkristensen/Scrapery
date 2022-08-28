@@ -20,7 +20,7 @@ function prepCacheUrl(url) {
     url = new URL(url);
     const dir = url.host.replaceAll('.', '__').replaceAll(':', '__');
     const pathname = url.pathname.replaceAll('/', '__');
-    const search = url.search;
+    const search = url.search.replaceAll('?', '__').replaceAll('&', '__');
 
     return './cache/' + dir +'_#_' + pathname + search;
 }
