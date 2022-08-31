@@ -228,8 +228,10 @@ Scrapery.prototype._process = function() {
         this._request(d.url, d.key, d.callback, d.error);
         setTimeout(this._process.bind(this), spacing);
     } else {
-            if(this.throttled.length > 0) {
+        if(this.throttled.length > 0) {
             setTimeout(this._process.bind(this), spacing - diff);
+        } else {
+            this.active_time = 0;
         }
     }
 }
