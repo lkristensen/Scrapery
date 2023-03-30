@@ -1,9 +1,9 @@
 const axios = require('axios');
 const https = require('https');
 const fs = require('fs');
+const sqlite3 = require('sqlite3');
 const env = require('process').env;
 
-console.log(env);
 const SPATH = env.SCRAPE_PATH ? env.SCRAPE_PATH + (env.SCRAPE_PATH[-1] == "/" ? "" : "/") : "./";
 
 function padString(i) {
@@ -183,6 +183,23 @@ Scrapery.prototype._complete = function () {
             }
         });
     }
+    if(this.sqlite_db && this.table_definition) {
+        const db = this.sqlite_db;
+        let fields = this.table_definition.fields.map(f => f.name).join(", ");
+        let param = this.table_definition.fields.map(() => "?").join(", ");
+        let qry = `insert into ${this.table_definition.name} (${fields}) values (${param})`;
+        db.serialize(() => {
+            let stmnt = db.prepare(qry);
+            data.forEach(d => {
+                const param =  this.table_definition.fields.map(f => d[f.name]);
+                stmnt.run(param);
+            });
+            stmnt.finalize();
+        })
+        
+        console.log("write to table definition");
+        
+    }
 }
 
 Scrapery.prototype._return_html = function(key, callback, html) {
@@ -281,6 +298,37 @@ Scrapery.prototype.write = function(url) {
 Scrapery.prototype.print = function() {
     this._print = true;
 };
+
+function prepareTable(db, definition) {
+    let qry = `create table IF NOT EXISTS ${definition.name} (`;
+    qry += definition.fields.map(field => ` ${field.name} ${field.type}`).join(",") + ");";
+
+    console.log(qry);
+    db.exec(qry);
+};
+
+Scrapery.prototype.sqlite = function(db, definition) {
+    let table_definition = { name: definition.name, fields: [...definition.fields.map(field => {
+        if(typeof field === 'string' || field instanceof String) {
+            return { name: field, type: "text"};
+        }
+        return field
+    }).filter(field => {
+        return (field?.name && field?.type);
+    })]};
+
+    let sqldb = new sqlite3.Database(SPATH + db, err => {
+        if(err) {
+            console.log("Database error " + err);
+            exit(1);
+        } else {
+            prepareTable(sqldb, table_definition);
+        }
+    });
+
+    this.sqlite_db = sqldb;
+    this.table_definition = table_definition;
+}
 
 Scrapery.prototype.post_process = function(fn) {
     this._pp = fn;
