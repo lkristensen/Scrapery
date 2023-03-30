@@ -1,6 +1,10 @@
 const axios = require('axios');
 const https = require('https');
 const fs = require('fs');
+const env = require('process').env;
+
+console.log(env);
+const SPATH = env.SCRAPE_PATH ? env.SCRAPE_PATH + (env.SCRAPE_PATH[-1] == "/" ? "" : "/") : "./";
 
 function padString(i) {
     return (i < 10) ? "0" + i : "" + i;
@@ -22,7 +26,7 @@ function prepCacheUrl(url) {
     const pathname = url.pathname.replaceAll('/', '__');
     const search = url.search.replaceAll('?', '__').replaceAll('&', '__');
 
-    return './cache/' + dir +'_#_' + pathname + search;
+    return SPATH + 'cache/' + dir +'_#_' + pathname + search;
 }
 
 function writeCache(url, html) {
@@ -90,8 +94,8 @@ function loadRobotTxt(that, origin, url, key, callback, error) {
 }
 
 function getCachedVersionPath(url) {
-    const cacheUrl = prepCacheUrl(url).replace('./cache/', '');
-    let files = fs.readdirSync("./cache");
+    const cacheUrl = prepCacheUrl(url).replace(SPATH + 'cache/', '');
+    let files = fs.readdirSync(SPATH + "cache");
     let str = '^' + cacheUrl + '_#_(\\d{10})$';
     let re = new RegExp(str);
     let match = files.filter(f => re.test(f));
@@ -101,9 +105,9 @@ function getCachedVersionPath(url) {
 
         for (let i = d.length; i > 1; i--) {
             let da = d.pop();
-            fs.unlink('./cache/' + cacheUrl + '_#_' + da, (err, res) => {});
+            fs.unlink(SPATH + 'cache/' + cacheUrl + '_#_' + da, (err, res) => {});
         }
-        return './cache/' + cacheUrl + '_#_' + d;
+        return SPATH + 'cache/' + cacheUrl + '_#_' + d;
     }
 
     return false;
@@ -139,8 +143,8 @@ function Scrapery(config) {
             rejectUnauthorized: false
         });
     }
-    if (!fs.existsSync('./cache/')) {
-        fs.mkdirSync('./cache/');
+    if (!fs.existsSync(SPATH + 'cache/')) {
+        fs.mkdirSync(SPATH + 'cache/');
     }
     if (this.config.spoof.toUpperCase() === "FIREFOX") {
         this.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0';
@@ -271,7 +275,7 @@ Scrapery.prototype.setHeader = function(header, val) {
 };
 
 Scrapery.prototype.write = function(url) {
-    this.file_path = url;
+    this.file_path = SPATH + url;
 };
 
 Scrapery.prototype.print = function() {
