@@ -2,7 +2,7 @@ const Scrapery = require('./index.js');
 const cheerio = require('cheerio');
 
 const url = 'http://localhost:3000/';
-let s = new Scrapery({ignore_robottxt: true, spoof: 'firefox'});
+let s = new Scrapery({ignore_robottxt: true, spoof: 'firefox', concurrent_connections: 1});
 
 s.request(url, '', loadPages, err => console.log(err)).post_process((key, data) => data).sqlite("test.db", {name: "test", fields: ["title"]}); //.write('result.json');
 

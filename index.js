@@ -115,6 +115,7 @@ function getCachedVersionPath(url) {
 
 function Scrapery(config) {
     this.active_cached = 0;
+    this.active_requests = 0;
     this.active_time = 0;
     this.throttled = [];
     this.data = {};
@@ -135,6 +136,7 @@ function Scrapery(config) {
         spoof: '',
         ...config
     }
+    this.request_log = [];
 
     if (this.config.agent) {
         this.agent = this.config.agent
@@ -171,6 +173,8 @@ Scrapery.prototype._complete = function () {
         data.push(this._pp(d, this.data[d]));
     }
 
+    console.log(this.request_log);
+
     if(this._print) {
         console.log(data);
     }
@@ -197,8 +201,7 @@ Scrapery.prototype._complete = function () {
             stmnt.finalize();
         })
         
-        console.log("write to table definition");
-        
+        console.log("write to table definition");        
     }
 }
 
@@ -212,14 +215,16 @@ Scrapery.prototype._return_html = function(key, callback, html) {
 }
 
 Scrapery.prototype._check_if_complete = function() {
-    if(this.throttled.length === 0 && this.active_cached === 0 && !this.loading) {
+    if(this.throttled.length === 0 && this.active_cached === 0 && this.active_requests === 0 && !this.loading) {
         this._complete();
     }
 } 
 
 Scrapery.prototype._request = function(url, key, callback, error) {
     let that = this;
-
+    this.active_requests++;
+    
+    this.request_log.push([new Date(), "Request", url]);
     axios.get(url, {
         httpsAgent: this.agent
     }).then(res => {
@@ -229,11 +234,13 @@ Scrapery.prototype._request = function(url, key, callback, error) {
             writeCache(url, html);
         }
         that._return_html(key, callback, html);
+        that.active_requests--;
         that._check_if_complete();
     }).catch(err => {
         if(error) {
             error(err);
         }
+        that.active_requests--;
         that._check_if_complete();
     });
 }
@@ -269,6 +276,7 @@ Scrapery.prototype.request = function(url, key, callback, error) {
                 this.active_cached++;
                 fs.readFile(cachedPath, 'utf-8', (err, html) => {
                     if(!err) {
+                        this.request_log.push([new Date(), "Cache", url]);
                         this._return_html(key, callback, html);
                         this.active_cached--;
                         this._check_if_complete();    
